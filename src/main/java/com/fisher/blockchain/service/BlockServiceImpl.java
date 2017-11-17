@@ -5,18 +5,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fisher.blockchain.model.Block;
 
 public class BlockServiceImpl implements BlockService {
 
 	private Logger logger = Logger.getLogger(BlockServiceImpl.class);
-	
-	private ObjectMapper jsonMapper = new ObjectMapper();
 
 	private LinkedList<Block> blockchain;
 
@@ -79,50 +75,49 @@ public class BlockServiceImpl implements BlockService {
 	};
 
 	public String calculateHashForBlock(Block block) {
-		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData());  
+		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData());
 	}
-	
-	public void addBlock (Block newBlock) {  
-	    if (isValidNewBlock(newBlock, getLatestBlock())) {  
-	        blockchain.addLast(newBlock);  
-	    }  
+
+	public void addBlock(Block newBlock) {
+		if (isValidNewBlock(newBlock, getLatestBlock())) {
+			blockchain.addLast(newBlock);
+		}
 	};
 
-	public void replaceChain (LinkedList<Block> newBlocks) {  
-	    if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {  
-	        logger.info("Received blockchain is valid. Replacing current blockchain with received blockchain");  
-	        blockchain = newBlocks;  
-	        broadcast(responseLatestMsg());
-	    } else {  
-	    	logger.info("Received blockchain invalid");  
-	    }  
+	public void replaceChain(LinkedList<Block> newBlocks) {
+		if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {
+			logger.info("Received blockchain is valid. Replacing current blockchain with received blockchain");
+			blockchain = newBlocks;
+			broadcast(responseLatestMsg());
+		} else {
+			logger.info("Received blockchain invalid");
+		}
 	};
-	
-	public void broadcast(Object responseLatestMsg) {
+
+	public void broadcast(String responseLatestMsg) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	private Object responseLatestMsg() {
+	private String responseLatestMsg() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public boolean isValidChain(LinkedList<Block> blockchainToValidate) {
-		if (!blockchainToValidate.getFirst()
-				.equals(getGenesisBlock())) {  
-	        return false;  
-	    }
-	    LinkedList<Block> tempBlocks = new LinkedList<Block>();
-	    tempBlocks.add(blockchainToValidate.getFirst());
-	    for (int i = 1; i < blockchainToValidate.size(); i++) {  
-	        if (isValidNewBlock(blockchainToValidate.get(i), tempBlocks.get(i-1))) {  
-	            tempBlocks.push(blockchainToValidate.get(i));  
-	        } else {  
-	            return false;  
-	        }  
-	    }  
-	    return true;
+		if (!blockchainToValidate.getFirst().equals(getGenesisBlock())) {
+			return false;
+		}
+		LinkedList<Block> tempBlocks = new LinkedList<Block>();
+		tempBlocks.add(blockchainToValidate.getFirst());
+		for (int i = 1; i < blockchainToValidate.size(); i++) {
+			if (isValidNewBlock(blockchainToValidate.get(i), tempBlocks.get(i - 1))) {
+				tempBlocks.push(blockchainToValidate.get(i));
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
