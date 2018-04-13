@@ -1,16 +1,17 @@
 package com.fisher.blockchain.service;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import com.fisher.blockchain.model.Block;
 
+
 public interface BlockService {
 
-	boolean isValidChain(LinkedList<Block> blockchainToValidate);
+	boolean isValidChain(ArrayList<Block> blockchainToValidate);
 	
-	LinkedList<Block> getBlockchain();
+	ArrayList<Block> getBlockchain();
 
-	String calculateHash(int index, String previousHash, long timestamp, String data);
+	String calculateHash(int index, String previousHash, long timestamp, String data, int nonce);
 
 	Block generateNextBlock(String blockData);
 
@@ -20,10 +21,12 @@ public interface BlockService {
 
 	String calculateHashForBlock(Block block);
 
-	void addBlock (Block newBlock);
+	boolean addBlock (Block newBlock);
 
-	void replaceChain (LinkedList<Block> newBlocks);
+	void replaceChain (ArrayList<Block> newBlocks);
 
 	void broadcast(String responseLatestMsg);
+
+	String responseLatestMsg();
 
 }

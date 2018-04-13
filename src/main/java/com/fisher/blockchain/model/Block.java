@@ -9,6 +9,7 @@ public class Block {
 	private long timestamp;
 	private String data;
 	private String hash;
+	private int nonce;
 		
 
 	public Block(int index, String previousHash, long timestamp, String data, String hash) {
@@ -18,6 +19,15 @@ public class Block {
 		this.timestamp = timestamp;
 		this.data = data;
 		this.hash = hash;
+		this.nonce = 0;
+	}
+
+	public int getNonce() {
+		return nonce;
+	}
+
+	public void setNonce(int nonce) {
+		this.nonce = nonce;
 	}
 
 	public int getIndex() {

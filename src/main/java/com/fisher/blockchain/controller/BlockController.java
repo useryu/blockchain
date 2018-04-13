@@ -1,34 +1,37 @@
 package com.fisher.blockchain.controller;
   
-import java.util.LinkedList;
+import java.util.ArrayList;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fisher.blockchain.model.Block;
-import com.fisher.blockchain.service.BlockServiceImpl;  
+import com.fisher.blockchain.service.BlockService;
 
 @Controller
 public class BlockController {
 	
-	private BlockServiceImpl blockService;
+	@Autowired
+	private BlockService blockService;
 
 	@RequestMapping(value = "/blocks", produces = "application/json")
 	@ResponseBody
-	public LinkedList<Block> listBlocks() {
+	public ArrayList<Block> listBlocks() {
 		return this.blockService.getBlockchain();
 	}
 
 
 	@RequestMapping(value = "/mineBlock", produces = "application/json")
 	@ResponseBody
-	public void mineBlock() {
-//        var newBlock = generateNextBlock(req.body.data);  
-//        addBlock(newBlock);  
-//        broadcast(responseLatestMsg());  
-//        console.log('block added: ' + JSON.stringify(newBlock));  
-//        res.send();  
+	public void mineBlock(String blockData) {
+        Block newBlock = this.blockService.generateNextBlock(blockData);
+        boolean success = this.blockService.addBlock(newBlock);
+        if(success) {
+        	this.blockService.broadcast(this.blockService.responseLatestMsg());
+        }
 	}
 	
 	/**
@@ -115,10 +118,7 @@ var handleBlockchainResponse = (message) => {
     }  
 };
 
-var responseLatestMsg = () => ({  
-    'type': MessageType.RESPONSE_BLOCKCHAIN,  
-    'data': JSON.stringify([getLatestBlock()])  
-});  
+
 
 var write = (ws, message) => ws.send(JSON.stringify(message));  
 var broadcast = (message) => sockets.forEach(socket => write(socket, message));

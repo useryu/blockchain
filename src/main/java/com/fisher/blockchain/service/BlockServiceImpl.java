@@ -4,30 +4,36 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import com.fisher.blockchain.model.Block;
+import com.fisher.blockchain.model.BlockMsg;
+import com.fisher.blockchain.model.MsgType;
 
+@Component
 public class BlockServiceImpl implements BlockService {
 
 	private Logger logger = Logger.getLogger(BlockServiceImpl.class);
 
-	private LinkedList<Block> blockchain;
+	private ArrayList<Block> blockchain;
 
-	public LinkedList<Block> getBlockchain() {
+	public ArrayList<Block> getBlockchain() {
+		if(this.blockchain==null) {
+			this.blockchain = new ArrayList<Block>();
+			this.blockchain.add(this.getGenesisBlock());
+		}
 		return blockchain;
 	}
 
 	public void BlockService() {
-		this.blockchain = new LinkedList<Block>();
-		this.blockchain.add(this.getGenesisBlock());
 	}
 
-	public String calculateHash(int index, String previousHash, long timestamp, String data) {
+	public String calculateHash(int index, String previousHash, long timestamp, String data, int nonce) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(index).append(previousHash).append(timestamp).append(data);
+		sb.append(index).append(previousHash).append(timestamp).append(data).append(nonce);
 		MessageDigest messageDigest;
 		String encodeStr = "";
 		try {
@@ -46,17 +52,30 @@ public class BlockServiceImpl implements BlockService {
 		Block previousBlock = getLatestBlock();
 		int nextIndex = previousBlock.getIndex() + 1;
 		long nextTimestamp = (new Date()).getTime() / 1000;
-		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData);
+		int difficulty = previousBlock.getNonce()+1;
+		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, difficulty);
+		String difficultyStr = getDifficultyStr(difficulty);
+		while(!nextHash.substring(0, difficulty).equals(difficultyStr)) {
+			nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, difficulty);
+		}
 		return new Block(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nextHash);
 	};
 
+	private String getDifficultyStr(int difficulty) {
+		StringBuilder sb = new StringBuilder();
+		for(int i=0;i<difficulty;i++) {
+			sb.append("0");
+		}
+		return sb.toString();
+	}
+
 	private Block getGenesisBlock() {
 		return new Block(0, "0", 1465154705, "my genesis block!!",
-				"816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
+				this.calculateHash(0, "0", 1465154705, "my genesis block!!", 0));
 	};
 
 	public Block getLatestBlock() {
-		return this.blockchain.getLast();
+		return this.getBlockchain().get(this.blockchain.size()-1);
 	}
 
 	public boolean isValidNewBlock(Block newBlock, Block previousBlock) {
@@ -75,19 +94,21 @@ public class BlockServiceImpl implements BlockService {
 	};
 
 	public String calculateHashForBlock(Block block) {
-		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData());
+		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData(), block.getNonce());
 	}
 
-	public void addBlock(Block newBlock) {
+	public boolean addBlock(Block newBlock) {
 		if (isValidNewBlock(newBlock, getLatestBlock())) {
-			blockchain.addLast(newBlock);
+			blockchain.add(newBlock);
+			return true;
 		}
+		return false;
 	};
 
-	public void replaceChain(LinkedList<Block> newBlocks) {
-		if (isValidChain(newBlocks) && newBlocks.size() > blockchain.size()) {
+	public void replaceChain(ArrayList<Block> newBlockChainFromPeers) {
+		if (isValidChain(newBlockChainFromPeers) && newBlockChainFromPeers.size() > blockchain.size()) {
 			logger.info("Received blockchain is valid. Replacing current blockchain with received blockchain");
-			blockchain = newBlocks;
+			blockchain = newBlockChainFromPeers;
 			broadcast(responseLatestMsg());
 		} else {
 			logger.info("Received blockchain invalid");
@@ -99,20 +120,22 @@ public class BlockServiceImpl implements BlockService {
 
 	}
 
-	private String responseLatestMsg() {
-		// TODO Auto-generated method stub
-		return null;
+	public String responseLatestMsg() {
+		BlockMsg msg = new BlockMsg();
+		msg.setData(this.getLatestBlock().toString());
+		msg.setType(MsgType.RESPONSE_BLOCKCHAIN);
+		return msg.toString();
 	}
 
-	public boolean isValidChain(LinkedList<Block> blockchainToValidate) {
-		if (!blockchainToValidate.getFirst().equals(getGenesisBlock())) {
+	public boolean isValidChain(ArrayList<Block> blockchainToValidate) {
+		if (!blockchainToValidate.get(0).equals(getGenesisBlock())) {
 			return false;
 		}
-		LinkedList<Block> tempBlocks = new LinkedList<Block>();
-		tempBlocks.add(blockchainToValidate.getFirst());
+		ArrayList<Block> tempBlocks = new ArrayList<Block>();
+		tempBlocks.add(blockchainToValidate.get(0));
 		for (int i = 1; i < blockchainToValidate.size(); i++) {
 			if (isValidNewBlock(blockchainToValidate.get(i), tempBlocks.get(i - 1))) {
-				tempBlocks.push(blockchainToValidate.get(i));
+				tempBlocks.add(blockchainToValidate.get(i));
 			} else {
 				return false;
 			}
