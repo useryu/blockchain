@@ -26,11 +26,14 @@ public class BlockController {
 
 	@RequestMapping(value = "/mineBlock", produces = "application/json")
 	@ResponseBody
-	public void mineBlock(String blockData) {
+	public Block mineBlock(String blockData) throws Exception {
         Block newBlock = this.blockService.generateNextBlock(blockData);
         boolean success = this.blockService.addBlock(newBlock);
         if(success) {
         	this.blockService.broadcast(this.blockService.responseLatestMsg());
+        	return newBlock;
+        }else {
+        	throw new Exception("can't mine a new block, try latter");
         }
 	}
 	

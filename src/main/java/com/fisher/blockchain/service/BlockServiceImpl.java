@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Random;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -15,6 +16,8 @@ import com.fisher.blockchain.model.MsgType;
 
 @Component
 public class BlockServiceImpl implements BlockService {
+
+	private static final String GENESIS_BLOCK_DATA = "fisher's first block!";
 
 	private Logger logger = Logger.getLogger(BlockServiceImpl.class);
 
@@ -31,9 +34,9 @@ public class BlockServiceImpl implements BlockService {
 	public void BlockService() {
 	}
 
-	public String calculateHash(int index, String previousHash, long timestamp, String data, int nonce) {
+	public String calculateHash(int index, String previousHash, long timestamp, String data, int nonce, int difficulty) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(index).append(previousHash).append(timestamp).append(data).append(nonce);
+		sb.append(index).append(previousHash).append(timestamp).append(data).append(nonce).append(difficulty);
 		MessageDigest messageDigest;
 		String encodeStr = "";
 		try {
@@ -52,13 +55,15 @@ public class BlockServiceImpl implements BlockService {
 		Block previousBlock = getLatestBlock();
 		int nextIndex = previousBlock.getIndex() + 1;
 		long nextTimestamp = (new Date()).getTime() / 1000;
-		int difficulty = previousBlock.getNonce()+1;
-		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, difficulty);
+		int nonce = new Random().nextInt();
+		int difficulty = previousBlock.getDifficulty()+1;
+		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nonce, difficulty);
 		String difficultyStr = getDifficultyStr(difficulty);
 		while(!nextHash.substring(0, difficulty).equals(difficultyStr)) {
-			nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, difficulty);
+			nonce = new Random().nextInt();
+			nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nonce, difficulty);
 		}
-		return new Block(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nextHash);
+		return new Block(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nextHash, nonce, difficulty);
 	};
 
 	private String getDifficultyStr(int difficulty) {
@@ -70,8 +75,8 @@ public class BlockServiceImpl implements BlockService {
 	}
 
 	private Block getGenesisBlock() {
-		return new Block(0, "0", 1465154705, "my genesis block!!",
-				this.calculateHash(0, "0", 1465154705, "my genesis block!!", 0));
+		return new Block(0, "0", 1465154705, GENESIS_BLOCK_DATA,
+				this.calculateHash(0, "0", 1465154705, GENESIS_BLOCK_DATA,0, 0), 0, 0);
 	};
 
 	public Block getLatestBlock() {
@@ -94,7 +99,7 @@ public class BlockServiceImpl implements BlockService {
 	};
 
 	public String calculateHashForBlock(Block block) {
-		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData(), block.getNonce());
+		return calculateHash(block.getIndex(), block.getPreviousHash(), block.getTimestamp(), block.getData(), block.getNonce(), block.getDifficulty());
 	}
 
 	public boolean addBlock(Block newBlock) {

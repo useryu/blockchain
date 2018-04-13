@@ -10,16 +10,25 @@ public class Block {
 	private String data;
 	private String hash;
 	private int nonce;
-		
+	private int difficulty;		
 
-	public Block(int index, String previousHash, long timestamp, String data, String hash) {
+	public Block(int index, String previousHash, long timestamp, String data, String hash, int nonce, int difficulty) {
 		super();
 		this.index = index;
 		this.previousHash = previousHash;
 		this.timestamp = timestamp;
 		this.data = data;
 		this.hash = hash;
-		this.nonce = 0;
+		this.nonce = nonce;
+		this.difficulty = difficulty;
+	}
+
+	public int getDifficulty() {
+		return difficulty;
+	}
+
+	public void setDifficulty(int difficulty) {
+		this.difficulty = difficulty;
 	}
 
 	public int getNonce() {
@@ -64,6 +73,12 @@ public class Block {
 
 	public String getHash() {
 		return hash;
+	}
+
+	@Override
+	public String toString() {
+		return "Block [index=" + index + ", previousHash=" + previousHash + ", timestamp=" + timestamp + ", data="
+				+ data + ", hash=" + hash + ", nonce=" + nonce + ", difficulty=" + difficulty + "]";
 	}
 
 	public void setHash(String hash) {

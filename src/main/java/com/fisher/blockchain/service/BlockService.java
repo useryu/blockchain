@@ -11,7 +11,7 @@ public interface BlockService {
 	
 	ArrayList<Block> getBlockchain();
 
-	String calculateHash(int index, String previousHash, long timestamp, String data, int nonce);
+	String calculateHash(int index, String previousHash, long timestamp, String data, int nonce, int difficulty);
 
 	Block generateNextBlock(String blockData);
 
