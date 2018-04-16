@@ -15,5 +15,9 @@
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<property name="prefix" value="/WEB-INF/view/" />
 		<property name="suffix" value=".jsp" />
+		<property name="contentType" value="text/html;charset=UTF-8"/>
 	</bean>
+	
+	<bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
+	
 </beans>  
