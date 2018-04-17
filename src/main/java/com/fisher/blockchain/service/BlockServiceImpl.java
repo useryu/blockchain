@@ -1,27 +1,40 @@
 package com.fisher.blockchain.service;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
+
+import javax.annotation.PostConstruct;
+
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.fisher.blockchain.model.Block;
+import com.fisher.blockchain.model.BlockBody;
 import com.fisher.blockchain.model.BlockMsg;
 import com.fisher.blockchain.model.MsgType;
+import com.fisher.blockchain.model.Transaction;
 
 @Component
 public class BlockServiceImpl implements BlockService {
 
-	private static final String GENESIS_BLOCK_DATA = "fisher's first block!";
+	private static final BlockBody GENESIS_BLOCK_DATA = GenInitData();
 
 	private Logger logger = Logger.getLogger(BlockServiceImpl.class);
 
 	private ArrayList<Block> blockchain;
+	
+	private int difficulty;
+	
+	private List<Transaction> pendingTransactions;
+	
+	private BigDecimal miningReward;
 
 	public ArrayList<Block> getBlockchain() {
 		if(this.blockchain==null) {
@@ -31,10 +44,20 @@ public class BlockServiceImpl implements BlockService {
 		return blockchain;
 	}
 
-	public void BlockService() {
+	private static BlockBody GenInitData() {
+		BlockBody init = new BlockBody();
+		init.setMsg("Fisher's first block");
+		return init;
 	}
 
-	public String calculateHash(int index, String previousHash, long timestamp, String data, int nonce, int difficulty) {
+	@PostConstruct
+	public void initBlockService() {
+		this.difficulty=0;
+		this.pendingTransactions = new ArrayList<Transaction>();
+		this.miningReward = new BigDecimal("1.1");
+	}
+
+	public String calculateHash(int index, String previousHash, long timestamp, BlockBody data, int nonce, int difficulty) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(index).append(previousHash).append(timestamp).append(data).append(nonce).append(difficulty);
 		MessageDigest messageDigest;
@@ -51,13 +74,16 @@ public class BlockServiceImpl implements BlockService {
 		return encodeStr;
 	}
 
-	public Block generateNextBlock(String blockData) {
+	public Block generateNextBlock(String miningRewardAddress) {
 		Block previousBlock = getLatestBlock();
 		int nextIndex = previousBlock.getIndex() + 1;
 		long nextTimestamp = (new Date()).getTime() / 1000;
 		int nonce = new Random().nextInt();
 		int difficulty = previousBlock.getDifficulty()+1;
-		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nonce, difficulty);
+		BlockBody blockData = new BlockBody();
+		blockData.setTransactions(this.pendingTransactions);
+		this.pendingTransactions = genRewardTrans(miningRewardAddress);
+		String nextHash = calculateHash(nextIndex, previousBlock.getHash(), nextTimestamp, blockData , nonce, difficulty);
 		String difficultyStr = getDifficultyStr(difficulty);
 		while(!nextHash.substring(0, difficulty).equals(difficultyStr)) {
 			nonce = new Random().nextInt();
@@ -65,6 +91,16 @@ public class BlockServiceImpl implements BlockService {
 		}
 		return new Block(nextIndex, previousBlock.getHash(), nextTimestamp, blockData, nextHash, nonce, difficulty);
 	};
+
+	private List<Transaction> genRewardTrans(String miningRewardAddress) {
+		List<Transaction> result = new ArrayList<Transaction>();
+		Transaction rewardTran = new Transaction();
+		rewardTran.setFromAddress(null);
+		rewardTran.setToAddress(miningRewardAddress);
+		rewardTran.setAmount(this.miningReward);
+		result.add(rewardTran);
+		return result;
+	}
 
 	private String getDifficultyStr(int difficulty) {
 		StringBuilder sb = new StringBuilder();
@@ -124,6 +160,22 @@ public class BlockServiceImpl implements BlockService {
 		// TODO Auto-generated method stub
 
 	}
+	
+	public BigDecimal getBalanceOfAddress(String address) {
+		BigDecimal balance = new BigDecimal("0");
+		for(Block block : this.getBlockchain()) {
+			if(block.getData()!=null && block.getData().getTransactions()!=null) {
+				for(Transaction t : block.getData().getTransactions()) {
+					if(address.equals(t.getFromAddress())) {
+						balance = balance.subtract(t.getAmount());
+					}else if(address.equals(t.getToAddress())) {
+						balance = balance.add(t.getAmount());
+					}
+				}
+			}
+		}
+		return balance;
+	}
 
 	public String responseLatestMsg() {
 		BlockMsg msg = new BlockMsg();
@@ -165,5 +217,11 @@ public class BlockServiceImpl implements BlockService {
 			stringBuffer.append(temp);
 		}
 		return stringBuffer.toString();
+	}
+
+	@Override
+	public boolean acceptTransaction(Transaction transaction) {
+		this.pendingTransactions.add(transaction);
+		return true;
 	}
 }
