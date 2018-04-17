@@ -1,18 +1,19 @@
 package com.fisher.blockchain.model;
 
 import java.util.Date;
+import java.util.List;
 
 public class Block {
 
 	private int index;
 	private String previousHash;
 	private long timestamp;
-	private String data;
+	private BlockBody data;
 	private String hash;
 	private int nonce;
 	private int difficulty;		
 
-	public Block(int index, String previousHash, long timestamp, String data, String hash, int nonce, int difficulty) {
+	public Block(int index, String previousHash, long timestamp, BlockBody data, String hash, int nonce, int difficulty) {
 		super();
 		this.index = index;
 		this.previousHash = previousHash;
@@ -63,11 +64,12 @@ public class Block {
 		this.timestamp = timestamp;
 	}
 
-	public String getData() {
+
+	public BlockBody getData() {
 		return data;
 	}
 
-	public void setData(String data) {
+	public void setData(BlockBody data) {
 		this.data = data;
 	}
 

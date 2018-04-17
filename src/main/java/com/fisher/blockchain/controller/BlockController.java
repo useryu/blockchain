@@ -1,5 +1,6 @@
 package com.fisher.blockchain.controller;
   
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fisher.blockchain.model.Block;
+import com.fisher.blockchain.model.BlockBody;
+import com.fisher.blockchain.model.Transaction;
 import com.fisher.blockchain.service.BlockService;
 
 @Controller
@@ -24,10 +27,34 @@ public class BlockController {
 	}
 
 
+	@RequestMapping(value = "/acceptTransaction", produces = "application/json")
+	@ResponseBody
+	public Transaction acceptTransaction(Transaction transaction) throws Exception {
+		boolean success = this.blockService.acceptTransaction(transaction);
+        if(success) {
+        	this.blockService.broadcast(this.blockService.responseLatestMsg());
+        	return transaction;
+        }else {
+        	throw new Exception("can't accept the new transaction, try latter");
+        }
+	}
+
+	@RequestMapping(value = "/getBalance", produces = "application/json")
+	@ResponseBody
+	public BigDecimal getBalance(String address) throws Exception {
+		BigDecimal balance = this.blockService.getBalanceOfAddress(address);
+        return balance;
+	}
+
+	@RequestMapping(value = "/showRewards")
+	public String showRewards() {
+		return "showRewards";
+	}
+	
 	@RequestMapping(value = "/mineBlock", produces = "application/json")
 	@ResponseBody
-	public Block mineBlock(String blockData) throws Exception {
-        Block newBlock = this.blockService.generateNextBlock(blockData);
+	public Block mineBlock(String miningRewardAddress) throws Exception {
+        Block newBlock = this.blockService.generateNextBlock(miningRewardAddress);
         boolean success = this.blockService.addBlock(newBlock);
         if(success) {
         	this.blockService.broadcast(this.blockService.responseLatestMsg());

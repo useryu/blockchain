@@ -21,12 +21,12 @@ public class BlockServiceImplTest extends TestCase {
 		fail("Not yet implemented");
 	}
 
-	public void testGenerateNextBlock() {
-		for(int i=0;i<NUMS;i++) {
-			Block newBlock = this.blockService.generateNextBlock("block"+i);
-			this.blockService.addBlock(newBlock);
-			System.out.println("current chain is:"+this.blockService.getBlockchain());
-		}
-	}
+//	public void testGenerateNextBlock() {
+//		for(int i=0;i<NUMS;i++) {
+//			Block newBlock = this.blockService.generateNextBlock("block"+i);
+//			this.blockService.addBlock(newBlock);
+//			System.out.println("current chain is:"+this.blockService.getBlockchain());
+//		}
+//	}
 
 }

@@ -1,8 +1,11 @@
 package com.fisher.blockchain.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import com.fisher.blockchain.model.Block;
+import com.fisher.blockchain.model.BlockBody;
+import com.fisher.blockchain.model.Transaction;
 
 
 public interface BlockService {
@@ -11,7 +14,7 @@ public interface BlockService {
 	
 	ArrayList<Block> getBlockchain();
 
-	String calculateHash(int index, String previousHash, long timestamp, String data, int nonce, int difficulty);
+	String calculateHash(int index, String previousHash, long timestamp, BlockBody data, int nonce, int difficulty);
 
 	Block generateNextBlock(String blockData);
 
@@ -27,6 +30,10 @@ public interface BlockService {
 
 	void broadcast(String responseLatestMsg);
 
+	BigDecimal getBalanceOfAddress(String address);
+	
 	String responseLatestMsg();
+
+	boolean acceptTransaction(Transaction transaction);
 
 }
