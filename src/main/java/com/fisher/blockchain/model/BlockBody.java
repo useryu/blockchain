@@ -2,10 +2,16 @@ package com.fisher.blockchain.model;
 
 import java.util.List;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description= "区块体数据")
 public class BlockBody {
 
+	@ApiModelProperty(value = "本区块包含的交易清单")
 	private List<Transaction> transactions;
 
+	@ApiModelProperty(value = "本区块传递的信息")
 	private String msg;
 
 	public List<Transaction> getTransactions() {

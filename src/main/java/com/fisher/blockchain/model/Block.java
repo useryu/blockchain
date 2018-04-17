@@ -3,14 +3,25 @@ package com.fisher.blockchain.model;
 import java.util.Date;
 import java.util.List;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description= "区块")
 public class Block {
 
+	@ApiModelProperty(value = "本区块索引号")
 	private int index;
+	@ApiModelProperty(value = "上一个区块HASH值")
 	private String previousHash;
+	@ApiModelProperty(value = "区块产生时间毫秒值")
 	private long timestamp;
+	@ApiModelProperty(value = "区块体")
 	private BlockBody data;
+	@ApiModelProperty(value = "区块HASH值")
 	private String hash;
+	@ApiModelProperty(value = "区块随机数")
 	private int nonce;
+	@ApiModelProperty(value = "区块生产难度值")
 	private int difficulty;		
 
 	public Block(int index, String previousHash, long timestamp, BlockBody data, String hash, int nonce, int difficulty) {

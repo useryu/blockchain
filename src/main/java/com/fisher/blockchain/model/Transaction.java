@@ -2,10 +2,17 @@ package com.fisher.blockchain.model;
 
 import java.math.BigDecimal;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description= "交易数据")
 public class Transaction {
 
+	@ApiModelProperty(value = "转出地址", example="fisher's address")
 	private String fromAddress;
+	@ApiModelProperty(value = "转入地址", example="bob's address")
 	private String toAddress;
+	@ApiModelProperty(value = "交易金额", example="100")
 	private BigDecimal amount;
 
 	public String getFromAddress() {
