@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fisher.blockchain.model.Block;
@@ -14,20 +15,26 @@ import com.fisher.blockchain.model.BlockBody;
 import com.fisher.blockchain.model.Transaction;
 import com.fisher.blockchain.service.BlockService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+@Api(tags="区块服务")
 @Controller
 public class BlockController {
 	
 	@Autowired
 	private BlockService blockService;
 
-	@RequestMapping(value = "/blocks", produces = "application/json")
+	@ApiOperation(value = "查看所有区块") 
+	@RequestMapping(method = RequestMethod.GET,value = "/blocks", produces = "application/json")
 	@ResponseBody
 	public ArrayList<Block> listBlocks() {
 		return this.blockService.getBlockchain();
 	}
 
 
-	@RequestMapping(value = "/acceptTransaction", produces = "application/json")
+	@ApiOperation(value = "接受交易信息") 
+	@RequestMapping(method = RequestMethod.POST,value = "/acceptTransaction", produces = "application/json")
 	@ResponseBody
 	public Transaction acceptTransaction(Transaction transaction) throws Exception {
 		boolean success = this.blockService.acceptTransaction(transaction);
@@ -39,19 +46,22 @@ public class BlockController {
         }
 	}
 
-	@RequestMapping(value = "/getBalance", produces = "application/json")
+	@ApiOperation(value = "查看某地址余额") 
+	@RequestMapping(method = RequestMethod.GET,value = "/getBalance", produces = "application/json")
 	@ResponseBody
 	public BigDecimal getBalance(String address) throws Exception {
 		BigDecimal balance = this.blockService.getBalanceOfAddress(address);
         return balance;
 	}
 
-	@RequestMapping(value = "/showRewards")
+	@ApiOperation(value = "查看奖励") 
+	@RequestMapping(method = RequestMethod.GET,value = "/showRewards")
 	public String showRewards() {
 		return "showRewards";
 	}
 	
-	@RequestMapping(value = "/mineBlock", produces = "application/json")
+	@ApiOperation(value = "挖矿，传入挖矿人地址接受奖励") 
+	@RequestMapping(method = RequestMethod.POST,value = "/mineBlock", produces = "application/json")
 	@ResponseBody
 	public Block mineBlock(String miningRewardAddress) throws Exception {
         Block newBlock = this.blockService.generateNextBlock(miningRewardAddress);
